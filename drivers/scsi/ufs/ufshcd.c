@@ -6575,16 +6575,8 @@ ufshcd_transfer_rsp_status(struct ufs_hba *hba, struct ufshcd_lrb *lrbp)
 		break;
 	} /* end of switch */
 
-	if ((host_byte(result) != DID_OK) && !hba->silence_err_logs) {
-		print_prdt = (ocs == OCS_INVALID_PRDT_ATTR ||
-			ocs == OCS_MISMATCH_DATA_BUF_SIZE);
-		ufshcd_print_trs(hba, 1 << lrbp->task_tag, print_prdt);
-	}
-
-	if ((host_byte(result) == DID_ERROR) ||
-	    (host_byte(result) == DID_ABORT))
-		ufsdbg_set_err_state(hba);
-
+	if ((host_byte(result) != DID_OK) && !hba->silence_err_logs)
+		ufshcd_print_trs(hba, 1 << lrbp->task_tag, true);
 	return result;
 }
 
@@ -8294,10 +8286,6 @@ static int ufshcd_host_reset_and_restore(struct ufs_hba *hba)
 	ufshcd_hba_stop(hba, false);
 	hba->silence_err_logs = true;
 	ufshcd_complete_requests(hba);
-#if defined(CONFIG_UFSFEATURE)
-	ufsf_hpb_reset_host(&hba->ufsf);
-	ufsf_tw_reset_host(&hba->ufsf);
-#endif
 	hba->silence_err_logs = false;
 	spin_unlock_irqrestore(hba->host->host_lock, flags);
 
@@ -8362,7 +8350,6 @@ static int ufshcd_detect_device(struct ufs_hba *hba)
 static int ufshcd_reset_and_restore(struct ufs_hba *hba)
 {
 	int err = 0;
-	unsigned long flags;
 	int retries = MAX_HOST_RESET_RETRIES;
 
 	ufshcd_enable_irq(hba);
@@ -8370,21 +8357,6 @@ static int ufshcd_reset_and_restore(struct ufs_hba *hba)
 	do {
 		err = ufshcd_detect_device(hba);
 	} while (err && --retries);
-
-	/*
-	 * There is no point proceeding even after failing
-	 * to recover after multiple retries.
-	 */
-	BUG_ON(err && ufshcd_is_embedded_dev(hba));
-
-	/*
-	 * After reset the door-bell might be cleared, complete
-	 * outstanding requests in s/w here.
-	 */
-	spin_lock_irqsave(hba->host->host_lock, flags);
-	ufshcd_transfer_req_compl(hba);
-	ufshcd_tmc_handler(hba);
-	spin_unlock_irqrestore(hba->host->host_lock, flags);
 
 	return err;
 }

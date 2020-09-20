@@ -693,6 +693,7 @@ struct devfreq *devfreq_add_device(struct device *dev,
 		devfreq->dev.cc_marked = cc_is_ddrfreq_related(dev_name(dev));
 #endif
 
+	dev_set_name(&devfreq->dev, "%s", dev_name(dev));
 	err = device_register(&devfreq->dev);
 	if (err) {
 		mutex_unlock(&devfreq->lock);
