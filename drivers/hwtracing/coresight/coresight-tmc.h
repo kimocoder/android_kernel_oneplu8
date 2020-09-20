@@ -217,6 +217,7 @@ struct etr_buf {
  * @trigger_cntr: amount of words to store after a trigger.
  * @etr_caps:	Bitmask of capabilities of the TMC ETR, inferred from the
  *		device configuration register (DEVID)
+ * @sysfs_data:	SYSFS buffer for ETR.
  */
 struct tmc_drvdata {
 	void __iomem		*base;
@@ -237,17 +238,7 @@ struct tmc_drvdata {
 	struct mutex		mem_lock;
 	u32			trigger_cntr;
 	u32			etr_caps;
-	struct coresight_csr	*csr;
-	const char		*csr_name;
-	bool			enable;
-	struct usb_qdss_ch	*usbch;
-	struct tmc_etr_bam_data	*bamdata;
-	bool			enable_to_bam;
-	struct coresight_cti	*cti_flush;
-	struct coresight_cti	*cti_reset;
-	enum tmc_etr_out_mode	out_mode;
-	struct byte_cntr	*byte_cntr;
-	struct dma_iommu_mapping *iommu_mapping;
+	struct etr_buf		*sysfs_buf;
 };
 
 struct etr_buf_operations {

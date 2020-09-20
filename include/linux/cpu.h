@@ -2,14 +2,14 @@
 /*
  * include/linux/cpu.h - generic cpu definition
  *
- * This is mainly for topological representation. We define the 
- * basic 'struct cpu' here, which can be embedded in per-arch 
+ * This is mainly for topological representation. We define the
+ * basic 'struct cpu' here, which can be embedded in per-arch
  * definitions of processors.
  *
  * Basic handling of the devices is done in drivers/base/cpu.c
  *
  * CPUs are exported via sysfs in the devices/system/cpu
- * directory. 
+ * directory.
  */
 #ifndef _LINUX_CPU_H_
 #define _LINUX_CPU_H_
@@ -59,6 +59,11 @@ extern ssize_t cpu_show_l1tf(struct device *dev,
 			     struct device_attribute *attr, char *buf);
 extern ssize_t cpu_show_mds(struct device *dev,
 			    struct device_attribute *attr, char *buf);
+extern ssize_t cpu_show_tsx_async_abort(struct device *dev,
+					struct device_attribute *attr,
+					char *buf);
+extern ssize_t cpu_show_itlb_multihit(struct device *dev,
+				      struct device_attribute *attr, char *buf);
 
 extern __printf(4, 5)
 struct device *cpu_device_create(struct device *parent, void *drvdata,
@@ -193,35 +198,7 @@ static inline int cpuhp_smt_enable(void) { return 0; }
 static inline int cpuhp_smt_disable(enum cpuhp_smt_control ctrlval) { return 0; }
 #endif
 
-#define IDLE_START 1
-#define IDLE_END 2
-
-void idle_notifier_register(struct notifier_block *n);
-void idle_notifier_unregister(struct notifier_block *n);
-void idle_notifier_call_chain(unsigned long val);
-
-/*
- * These are used for a global "mitigations=" cmdline option for toggling
- * optional CPU mitigations.
- */
-enum cpu_mitigations {
-	CPU_MITIGATIONS_OFF,
-	CPU_MITIGATIONS_AUTO,
-	CPU_MITIGATIONS_AUTO_NOSMT,
-};
-
-extern enum cpu_mitigations cpu_mitigations;
-
-/* mitigations=off */
-static inline bool cpu_mitigations_off(void)
-{
-	return cpu_mitigations == CPU_MITIGATIONS_OFF;
-}
-
-/* mitigations=auto,nosmt */
-static inline bool cpu_mitigations_auto_nosmt(void)
-{
-	return cpu_mitigations == CPU_MITIGATIONS_AUTO_NOSMT;
-}
+extern bool cpu_mitigations_off(void);
+extern bool cpu_mitigations_auto_nosmt(void);
 
 #endif /* _LINUX_CPU_H_ */

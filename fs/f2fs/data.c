@@ -605,8 +605,7 @@ skip:
 	if (fio->in_list)
 		goto next;
 out:
-	if (is_sbi_flag_set(sbi, SBI_IS_SHUTDOWN) ||
-				f2fs_is_checkpoint_ready(sbi))
+	if (is_sbi_flag_set(sbi, SBI_IS_SHUTDOWN))
 		__submit_merged_bio(io);
 	up_write(&io->io_rwsem);
 }
@@ -656,9 +655,6 @@ static int f2fs_submit_page_read(struct inode *inode, struct page *page,
 	bio = f2fs_grab_read_bio(inode, blkaddr, 1, 0);
 	if (IS_ERR(bio))
 		return PTR_ERR(bio);
-
-	if (f2fs_may_encrypt_bio(inode, NULL))
-		fscrypt_set_ice_dun(inode, bio, PG_DUN(inode, page));
 
 	/* wait for GCed page writeback via META_MAPPING */
 	f2fs_wait_on_block_writeback(inode, blkaddr);
@@ -1394,9 +1390,9 @@ static int get_data_block_dio(struct inode *inode, sector_t iblock,
 			struct buffer_head *bh_result, int create)
 {
 	return __get_data_block(inode, iblock, bh_result, create,
-				F2FS_GET_BLOCK_DIO, NULL,
-				f2fs_rw_hint_to_seg_type(inode->i_write_hint),
-				false);
+						F2FS_GET_BLOCK_DIO, NULL,
+						f2fs_rw_hint_to_seg_type(
+							inode->i_write_hint));
 }
 
 static int get_data_block_bmap(struct inode *inode, sector_t iblock,
@@ -1755,6 +1751,38 @@ static int f2fs_mpage_readpages(struct address_space *mapping,
 			zero_user_segment(page, 0, PAGE_SIZE);
 			unlock_page(page);
 		}
+		if (bio == NULL) {
+			bio = f2fs_grab_read_bio(inode, block_nr, nr_pages,
+					is_readahead ? REQ_RAHEAD : 0);
+			if (IS_ERR(bio)) {
+				bio = NULL;
+				goto set_error_page;
+			}
+		}
+
+		/*
+		 * If the page is under writeback, we need to wait for
+		 * its completion to see the correct decrypted data.
+		 */
+		f2fs_wait_on_block_writeback(inode, block_nr);
+
+		if (bio_add_page(bio, page, blocksize, 0) < blocksize)
+			goto submit_and_realloc;
+
+		ClearPageError(page);
+		last_block_in_bio = block_nr;
+		goto next_page;
+set_error_page:
+		SetPageError(page);
+		zero_user_segment(page, 0, PAGE_SIZE);
+		unlock_page(page);
+		goto next_page;
+confused:
+		if (bio) {
+			__submit_bio(F2FS_I_SB(inode), bio, DATA);
+			bio = NULL;
+		}
+		unlock_page(page);
 next_page:
 		if (pages)
 			put_page(page);
@@ -2626,7 +2654,7 @@ repeat:
 		}
 	}
 
-	f2fs_wait_on_page_writeback(page, DATA, false, true);
+	f2fs_wait_on_page_writeback(page, DATA, false);
 
 	if (len == PAGE_SIZE || PageUptodate(page))
 		return 0;

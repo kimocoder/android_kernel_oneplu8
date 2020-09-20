@@ -941,9 +941,35 @@ void wil_netif_rx(struct sk_buff *skb, struct net_device *ndev, int cid,
 		[GRO_CONSUMED]		= "GRO_CONSUMED",
 	};
 
+	wil->txrx_ops.get_netif_rx_params(skb, &cid, &security);
+
+	stats = &wil->sta[cid].stats;
+
+	if (ndev->features & NETIF_F_RXHASH)
+		/* fake L4 to ensure it won't be re-calculated later
+		 * set hash to any non-zero value to activate rps
+		 * mechanism, core will be chosen according
+		 * to user-level rps configuration.
+		 */
+		skb_set_hash(skb, 1, PKT_HASH_TYPE_L4);
+
+	skb_orphan(skb);
+
+	if (security && (wil->txrx_ops.rx_crypto_check(wil, skb) != 0)) {
+		rc = GRO_DROP;
+		dev_kfree_skb(skb);
+		stats->rx_replay++;
+		goto stats;
+	}
+
+	/* check errors reported by HW and update statistics */
+	if (unlikely(wil->txrx_ops.rx_error_check(wil, skb, stats))) {
+		dev_kfree_skb(skb);
+		return;
+	}
+
 	if (wdev->iftype == NL80211_IFTYPE_STATION) {
-		sa = wil_skb_get_sa(skb);
-		if (mcast && ether_addr_equal(sa, ndev->dev_addr)) {
+		if (mcast && ether_addr_equal(eth->h_source, ndev->dev_addr)) {
 			/* mcast packet looped back to us */
 			rc = GRO_DROP;
 			dev_kfree_skb(skb);
