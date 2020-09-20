@@ -63,34 +63,7 @@ struct rmnet_port {
 	u8 rmnet_mode;
 	struct hlist_head muxed_ep[RMNET_MAX_LOGICAL_EP];
 	struct net_device *bridge_ep;
-	void *rmnet_perf;
-
-	struct rmnet_egress_agg_params egress_agg_params;
-
-	/* Protect aggregation related elements */
-	spinlock_t agg_lock;
-
-	struct sk_buff *agg_skb;
-	int agg_state;
-	u8 agg_count;
-	struct timespec agg_time;
-	struct timespec agg_last;
-	struct hrtimer hrtimer;
-	struct work_struct agg_wq;
-	u8 agg_size_order;
-	struct list_head agg_list;
-	struct rmnet_agg_page *agg_head;
-
-	void *qmi_info;
-
-	/* dl marker elements */
-	struct list_head dl_list;
-	struct rmnet_port_priv_stats stats;
-	int dl_marker_flush;
-
-	/* Descriptor pool */
-	spinlock_t desc_pool_lock;
-	struct rmnet_frag_descriptor_pool *frag_desc_pool;
+	struct net_device *rmnet_dev;
 };
 
 extern struct rtnl_link_ops rmnet_link_ops;
@@ -181,8 +154,7 @@ enum rmnet_trace_evt {
 	NW_STACK_TX,
 };
 
-int rmnet_is_real_dev_registered(const struct net_device *real_dev);
-struct rmnet_port *rmnet_get_port(struct net_device *real_dev);
+struct rmnet_port *rmnet_get_port_rcu(struct net_device *real_dev);
 struct rmnet_endpoint *rmnet_get_endpoint(struct rmnet_port *port, u8 mux_id);
 int rmnet_add_bridge(struct net_device *rmnet_dev,
 		     struct net_device *slave_dev,
