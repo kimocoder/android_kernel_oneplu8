@@ -138,9 +138,7 @@
 #define CORE_CMDIN_RCLK_EN		(1 << 1)
 #define CORE_START_CDC_TRAFFIC		(1 << 6)
 
-#define CORE_PWRSAVE_DLL	(1 << 3)
-#define CORE_FIFO_ALT_EN	(1 << 10)
-#define CORE_CMDEN_HS400_INPUT_MASK_CNT (1 << 13)
+#define DDR_CONFIG_POR_VAL	0x80040873
 
 #define CORE_DDR_CAL_EN		(1 << 0)
 #define CORE_FLL_CYCLE_CNT	(1 << 18)
@@ -170,94 +168,93 @@
 #define RCLK_TOGGLE 0x2
 
 struct sdhci_msm_offset {
-	u32 CORE_MCI_DATA_CNT;
-	u32 CORE_MCI_STATUS;
-	u32 CORE_MCI_FIFO_CNT;
-	u32 CORE_MCI_VERSION;
-	u32 CORE_GENERICS;
-	u32 CORE_TESTBUS_CONFIG;
-	u32 CORE_TESTBUS_SEL2_BIT;
-	u32 CORE_TESTBUS_ENA;
-	u32 CORE_TESTBUS_SEL2;
-	u32 CORE_PWRCTL_STATUS;
-	u32 CORE_PWRCTL_MASK;
-	u32 CORE_PWRCTL_CLEAR;
-	u32 CORE_PWRCTL_CTL;
-	u32 CORE_SDCC_DEBUG_REG;
-	u32 CORE_DLL_CONFIG;
-	u32 CORE_DLL_STATUS;
-	u32 CORE_VENDOR_SPEC;
-	u32 CORE_VENDOR_SPEC_ADMA_ERR_ADDR0;
-	u32 CORE_VENDOR_SPEC_ADMA_ERR_ADDR1;
-	u32 CORE_VENDOR_SPEC_FUNC2;
-	u32 CORE_VENDOR_SPEC_CAPABILITIES0;
-	u32 CORE_DDR_200_CFG;
-	u32 CORE_VENDOR_SPEC3;
-	u32 CORE_DLL_CONFIG_2;
-	u32 CORE_DLL_CONFIG_3;
-	u32 CORE_DDR_CONFIG;
-	u32 CORE_DDR_CONFIG_OLD; /* Applcable to sddcc minor ver < 0x49 only */
-	u32 CORE_DLL_USR_CTL; /* Present on SDCC5.1 onwards */
+	u32 core_hc_mode;
+	u32 core_mci_data_cnt;
+	u32 core_mci_status;
+	u32 core_mci_fifo_cnt;
+	u32 core_mci_version;
+	u32 core_generics;
+	u32 core_testbus_config;
+	u32 core_testbus_sel2_bit;
+	u32 core_testbus_ena;
+	u32 core_testbus_sel2;
+	u32 core_pwrctl_status;
+	u32 core_pwrctl_mask;
+	u32 core_pwrctl_clear;
+	u32 core_pwrctl_ctl;
+	u32 core_sdcc_debug_reg;
+	u32 core_dll_config;
+	u32 core_dll_status;
+	u32 core_vendor_spec;
+	u32 core_vendor_spec_adma_err_addr0;
+	u32 core_vendor_spec_adma_err_addr1;
+	u32 core_vendor_spec_func2;
+	u32 core_vendor_spec_capabilities0;
+	u32 core_ddr_200_cfg;
+	u32 core_vendor_spec3;
+	u32 core_dll_config_2;
+	u32 core_dll_config_3;
+	u32 core_ddr_config_old; /* Applicable to sdcc minor ver < 0x49 */
+	u32 core_ddr_config;
 };
 
-struct sdhci_msm_offset sdhci_msm_offset_mci_removed = {
-	.CORE_MCI_DATA_CNT = 0x35C,
-	.CORE_MCI_STATUS = 0x324,
-	.CORE_MCI_FIFO_CNT = 0x308,
-	.CORE_MCI_VERSION = 0x318,
-	.CORE_GENERICS = 0x320,
-	.CORE_TESTBUS_CONFIG = 0x32C,
-	.CORE_TESTBUS_SEL2_BIT = 3,
-	.CORE_TESTBUS_ENA = (1 << 31),
-	.CORE_TESTBUS_SEL2 = (1 << 3),
-	.CORE_PWRCTL_STATUS = 0x240,
-	.CORE_PWRCTL_MASK = 0x244,
-	.CORE_PWRCTL_CLEAR = 0x248,
-	.CORE_PWRCTL_CTL = 0x24C,
-	.CORE_SDCC_DEBUG_REG = 0x358,
-	.CORE_DLL_CONFIG = 0x200,
-	.CORE_DLL_STATUS = 0x208,
-	.CORE_VENDOR_SPEC = 0x20C,
-	.CORE_VENDOR_SPEC_ADMA_ERR_ADDR0 = 0x214,
-	.CORE_VENDOR_SPEC_ADMA_ERR_ADDR1 = 0x218,
-	.CORE_VENDOR_SPEC_FUNC2 = 0x210,
-	.CORE_VENDOR_SPEC_CAPABILITIES0 = 0x21C,
-	.CORE_DDR_200_CFG = 0x224,
-	.CORE_VENDOR_SPEC3 = 0x250,
-	.CORE_DLL_CONFIG_2 = 0x254,
-	.CORE_DLL_CONFIG_3 = 0x258,
-	.CORE_DDR_CONFIG = 0x25C,
-	.CORE_DLL_USR_CTL = 0x388,
+static const struct sdhci_msm_offset sdhci_msm_v5_offset = {
+	.core_mci_data_cnt = 0x35c,
+	.core_mci_status = 0x324,
+	.core_mci_fifo_cnt = 0x308,
+	.core_mci_version = 0x318,
+	.core_generics = 0x320,
+	.core_testbus_config = 0x32c,
+	.core_testbus_sel2_bit = 3,
+	.core_testbus_ena = (1 << 31),
+	.core_testbus_sel2 = (1 << 3),
+	.core_pwrctl_status = 0x240,
+	.core_pwrctl_mask = 0x244,
+	.core_pwrctl_clear = 0x248,
+	.core_pwrctl_ctl = 0x24c,
+	.core_sdcc_debug_reg = 0x358,
+	.core_dll_config = 0x200,
+	.core_dll_status = 0x208,
+	.core_vendor_spec = 0x20c,
+	.core_vendor_spec_adma_err_addr0 = 0x214,
+	.core_vendor_spec_adma_err_addr1 = 0x218,
+	.core_vendor_spec_func2 = 0x210,
+	.core_vendor_spec_capabilities0 = 0x21c,
+	.core_ddr_200_cfg = 0x224,
+	.core_vendor_spec3 = 0x250,
+	.core_dll_config_2 = 0x254,
+	.core_dll_config_3 = 0x258,
+	.core_ddr_config = 0x25c,
 };
 
-struct sdhci_msm_offset sdhci_msm_offset_mci_present = {
-	.CORE_MCI_DATA_CNT = 0x30,
-	.CORE_MCI_STATUS = 0x34,
-	.CORE_MCI_FIFO_CNT = 0x44,
-	.CORE_MCI_VERSION = 0x050,
-	.CORE_GENERICS = 0x70,
-	.CORE_TESTBUS_CONFIG = 0x0CC,
-	.CORE_TESTBUS_SEL2_BIT = 4,
-	.CORE_TESTBUS_ENA = (1 << 3),
-	.CORE_TESTBUS_SEL2 = (1 << 4),
-	.CORE_PWRCTL_STATUS = 0xDC,
-	.CORE_PWRCTL_MASK = 0xE0,
-	.CORE_PWRCTL_CLEAR = 0xE4,
-	.CORE_PWRCTL_CTL = 0xE8,
-	.CORE_SDCC_DEBUG_REG = 0x124,
-	.CORE_DLL_CONFIG = 0x100,
-	.CORE_DLL_STATUS = 0x108,
-	.CORE_VENDOR_SPEC = 0x10C,
-	.CORE_VENDOR_SPEC_ADMA_ERR_ADDR0 = 0x114,
-	.CORE_VENDOR_SPEC_ADMA_ERR_ADDR1 = 0x118,
-	.CORE_VENDOR_SPEC_FUNC2 = 0x110,
-	.CORE_VENDOR_SPEC_CAPABILITIES0 = 0x11C,
-	.CORE_DDR_200_CFG = 0x184,
-	.CORE_VENDOR_SPEC3 = 0x1B0,
-	.CORE_DLL_CONFIG_2 = 0x1B4,
-	.CORE_DLL_CONFIG_3 = 0x1B8,
-	.CORE_DDR_CONFIG_OLD = 0x1B8, /* Applicable to sdcc minor ver < 0x49 */
-	.CORE_DDR_CONFIG = 0x1BC,
+static const struct sdhci_msm_offset sdhci_msm_mci_offset = {
+	.core_hc_mode = 0x78,
+	.core_mci_data_cnt = 0x30,
+	.core_mci_status = 0x34,
+	.core_mci_fifo_cnt = 0x44,
+	.core_mci_version = 0x050,
+	.core_generics = 0x70,
+	.core_testbus_config = 0x0cc,
+	.core_testbus_sel2_bit = 4,
+	.core_testbus_ena = (1 << 3),
+	.core_testbus_sel2 = (1 << 4),
+	.core_pwrctl_status = 0xdc,
+	.core_pwrctl_mask = 0xe0,
+	.core_pwrctl_clear = 0xe4,
+	.core_pwrctl_ctl = 0xe8,
+	.core_sdcc_debug_reg = 0x124,
+	.core_dll_config = 0x100,
+	.core_dll_status = 0x108,
+	.core_vendor_spec = 0x10c,
+	.core_vendor_spec_adma_err_addr0 = 0x114,
+	.core_vendor_spec_adma_err_addr1 = 0x118,
+	.core_vendor_spec_func2 = 0x110,
+	.core_vendor_spec_capabilities0 = 0x11c,
+	.core_ddr_200_cfg = 0x184,
+	.core_vendor_spec3 = 0x1b0,
+	.core_dll_config_2 = 0x1b4,
+	.core_ddr_config_old = 0x1b8,
+	.core_ddr_config = 0x1bc,
 };
 
 u8 sdhci_msm_readb_relaxed(struct sdhci_host *host, u32 offset)
@@ -271,8 +268,32 @@ u8 sdhci_msm_readb_relaxed(struct sdhci_host *host, u32 offset)
 	else
 		base_addr = msm_host->core_mem;
 
-	return readb_relaxed(base_addr + offset);
-}
+struct sdhci_msm_host {
+	struct platform_device *pdev;
+	void __iomem *core_mem;	/* MSM SDCC mapped address */
+	int pwr_irq;		/* power irq */
+	struct clk *bus_clk;	/* SDHC bus voter clock */
+	struct clk *xo_clk;	/* TCXO clk needed for FLL feature of cm_dll*/
+	struct clk_bulk_data bulk_clks[4]; /* core, iface, cal, sleep clocks */
+	unsigned long clk_rate;
+	struct mmc_host *mmc;
+	bool use_14lpp_dll_reset;
+	bool tuning_done;
+	bool calibration_done;
+	u8 saved_tuning_phase;
+	bool use_cdclp533;
+	u32 curr_pwr_state;
+	u32 curr_io_level;
+	wait_queue_head_t pwr_irq_wait;
+	bool pwr_irq_flag;
+	u32 caps_0;
+	bool mci_removed;
+	const struct sdhci_msm_variant_ops *var_ops;
+	const struct sdhci_msm_offset *offset;
+	bool use_cdr;
+	u32 transfer_mode;
+	bool updated_ddr_cfg;
+};
 
 u32 sdhci_msm_readl_relaxed(struct sdhci_host *host, u32 offset)
 {
@@ -1025,12 +1046,13 @@ out:
 
 static int sdhci_msm_cm_dll_sdc4_calibration(struct sdhci_host *host)
 {
+	struct mmc_host *mmc = host->mmc;
+	u32 dll_status, config, ddr_cfg_offset;
+	int ret;
 	struct sdhci_pltfm_host *pltfm_host = sdhci_priv(host);
-	struct sdhci_msm_host *msm_host = pltfm_host->priv;
-	const struct sdhci_msm_offset *msm_host_offset =
-					msm_host->offset;
-	u32 dll_status;
-	int ret = 0;
+	struct sdhci_msm_host *msm_host = sdhci_pltfm_priv(pltfm_host);
+	const struct sdhci_msm_offset *msm_offset =
+					sdhci_priv_msm_offset(host);
 
 	pr_debug("%s: Enter %s\n", mmc_hostname(host->mmc), __func__);
 
@@ -1038,15 +1060,18 @@ static int sdhci_msm_cm_dll_sdc4_calibration(struct sdhci_host *host)
 	 * Reprogramming the value in case it might have been modified by
 	 * bootloaders.
 	 */
-	if (msm_host->dll_hsr && msm_host->dll_hsr->ddr_config) {
-		writel_relaxed(msm_host->dll_hsr->ddr_config, host->ioaddr +
-			msm_host_offset->CORE_DDR_CONFIG);
-	} else if (msm_host->rclk_delay_fix) {
-		writel_relaxed(DDR_CONFIG_POR_VAL, host->ioaddr +
-			msm_host_offset->CORE_DDR_CONFIG);
-	} else {
-		writel_relaxed(DDR_CONFIG_POR_VAL, host->ioaddr +
-			msm_host_offset->CORE_DDR_CONFIG_OLD);
+	if (msm_host->updated_ddr_cfg)
+		ddr_cfg_offset = msm_offset->core_ddr_config;
+	else
+		ddr_cfg_offset = msm_offset->core_ddr_config_old;
+	writel_relaxed(DDR_CONFIG_POR_VAL, host->ioaddr + ddr_cfg_offset);
+
+	if (mmc->ios.enhanced_strobe) {
+		config = readl_relaxed(host->ioaddr +
+				msm_offset->core_ddr_200_cfg);
+		config |= CORE_CMDIN_RCLK_EN;
+		writel_relaxed(config, host->ioaddr +
+				msm_offset->core_ddr_200_cfg);
 	}
 
 	if (msm_host->enhanced_strobe && mmc_card_strobe(msm_host->mmc->card))
@@ -5195,6 +5220,9 @@ static int sdhci_msm_probe(struct platform_device *pdev)
 				msm_host->core_mem + CORE_HC_MODE);
 	}
 	sdhci_set_default_hw_caps(msm_host, host);
+
+	if (core_major == 1 && core_minor >= 0x49)
+		msm_host->updated_ddr_cfg = true;
 
 	/*
 	 * Set the PAD_PWR_SWITCH_EN bit so that the PAD_PWR_SWITCH bit can

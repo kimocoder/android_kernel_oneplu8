@@ -4456,10 +4456,10 @@ static int __ufshcd_query_descriptor(struct ufs_hba *hba,
 		goto out_unlock;
 	}
 
-	hba->dev_cmd.query.descriptor = NULL;
 	*buf_len = be16_to_cpu(response->upiu_res.length);
 
 out_unlock:
+	hba->dev_cmd.query.descriptor = NULL;
 	mutex_unlock(&hba->dev_cmd.lock);
 out:
 	ufshcd_release_all(hba);
@@ -5516,36 +5516,26 @@ static int __ufshcd_uic_hibern8_enter(struct ufs_hba *hba)
 	trace_ufshcd_profile_hibern8(dev_name(hba->dev), "enter",
 			     ktime_to_us(ktime_sub(ktime_get(), start)), ret);
 
-	ufsdbg_error_inject_dispatcher(hba, ERR_INJECT_HIBERN8_ENTER, 0, &ret);
-
-	/*
-	 * Do full reinit if enter failed or if LINERESET was detected during
-	 * Hibern8 operation. After LINERESET, link moves to default PWM-G1
-	 * mode hence full reinit is required to move link to HS speeds.
-	 */
-	if (ret || hba->full_init_linereset) {
+	if (ret) {
 		int err;
 
-		hba->full_init_linereset = false;
-		ufshcd_update_error_stats(hba, UFS_ERR_HIBERN8_ENTER);
 		dev_err(hba->dev, "%s: hibern8 enter failed. ret = %d\n",
 			__func__, ret);
 
 		/*
-		 * If link recovery fails then return error code (-ENOLINK)
-		 * returned ufshcd_link_recovery().
+		 * If link recovery fails then return error code returned from
+		 * ufshcd_link_recovery().
 		 * If link recovery succeeds then return -EAGAIN to attempt
 		 * hibern8 enter retry again.
 		 */
 		err = ufshcd_link_recovery(hba);
 		if (err) {
-			dev_err(hba->dev, "%s: link recovery failed\n",
-				__func__);
+			dev_err(hba->dev, "%s: link recovery failed", __func__);
 			ret = err;
 		} else {
 			ret = -EAGAIN;
 		}
-	} else {
+	} else
 		ufshcd_vops_hibern8_notify(hba, UIC_CMD_DME_HIBER_ENTER,
 								POST_CHANGE);
 		dev_dbg(hba->dev, "%s: Hibern8 Enter at %lld us\n", __func__,
