@@ -1222,12 +1222,8 @@ static void f2fs_put_super(struct super_block *sb)
 	int i;
 	bool dropped;
 
-#ifdef CONFIG_F2FS_OF2FS
-	/*[ASTI-147]: add for oDiscard */
-	spin_lock(&sb_list_lock);
-	list_del(&sbi->sbi_list);
-	spin_unlock(&sb_list_lock);
-#endif
+	/* unregister procfs/sysfs entries in advance to avoid race case */
+	f2fs_unregister_sysfs(sbi);
 
 	f2fs_quota_off_umount(sb);
 
@@ -1291,8 +1287,6 @@ static void f2fs_put_super(struct super_block *sb)
 	f2fs_destroy_segment_manager(sbi);
 
 	kvfree(sbi->ckpt);
-
-	f2fs_unregister_sysfs(sbi);
 
 	sb->s_fs_info = NULL;
 	if (sbi->s_chksum_driver)
